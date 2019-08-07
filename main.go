@@ -12,6 +12,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type query struct {
+	command string
+	table   string
+	name    string
+	amount  float64
+	id      int64
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -32,30 +40,69 @@ func main() {
 	}
 
 	var q string
-	var m string
 
-	if os.Args[1] == "budget" {
+	newQuery := query{
+		command: os.Args[1],
+		table:   os.Args[2],
+	}
+
+	// setting name and amount for adding a budget/transaction
+	if newQuery.command == "add" {
+		a, err := strconv.ParseFloat(os.Args[4], 64)
+		if err != nil {
+			fmt.Println("Error in string conversion to float:", err)
+		}
+		newQuery.name = os.Args[3]
+		newQuery.amount = a
+	}
+	// setting id for delete and update actions
+	if len(os.Args) >= 4 {
+		id, err := strconv.ParseInt(os.Args[3], 10, 64)
+		if err != nil {
+			fmt.Println("Error in id conversion to integer:", err)
+		}
+		newQuery.id = id
+	}
+	// setting amount for update action
+	if len(os.Args) >= 5 {
+		a, err := strconv.ParseFloat(os.Args[4], 64)
+		if err != nil {
+			fmt.Println("Error in allowance conversion to float:", err)
+		}
+		newQuery.amount = a
+	}
+
+	// add budget
+	if newQuery.command == "add" && newQuery.table == "budget" {
 		q = "insert into user_budgets (budget_name, allowance) VALUES (?, ?)"
-		m = "Budget for " + os.Args[2] + " successfully added!"
-	} else if os.Args[1] == "spent" {
+	}
+	// add transaction
+	if newQuery.command == "add" && newQuery.table == "transaction" {
 		q = "insert into transactions (transaction_desc, amount_spent) VALUES (?, ?)"
-		m = "Transaction for " + os.Args[2] + " successfully added!"
-	} else if os.Args[1] == "get" && os.Args[2] == "budgets" {
+	}
+	// get all budgets
+	if newQuery.command == "get" && newQuery.table == "budgets" {
 		q = "select * from user_budgets"
-	} else if os.Args[1] == "get" && os.Args[2] == "transactions" {
+	}
+	// get all transactions
+	if newQuery.command == "get" && newQuery.table == "transactions" {
 		q = "select * from transactions"
-	} else if os.Args[1] == "update" && os.Args[2] == "budget" {
+	}
+	// update a budget
+	if newQuery.command == "update" && newQuery.table == "budget" {
 		q = "update user_budgets set allowance = ? where budget_id = ?"
-		m = "Budget successfully updated!"
-	} else if os.Args[1] == "update" && os.Args[2] == "transaction" {
+	}
+	// update a transaction
+	if newQuery.command == "update" && newQuery.table == "transaction" {
 		q = "update transactions set amount_spent = ? where transaction_id = ?"
-		m = "Transaction successfully updated!"
-	} else if os.Args[1] == "delete" && os.Args[2] == "budget" {
+	}
+	// delete a budget
+	if newQuery.command == "delete" && newQuery.table == "budget" {
 		q = "delete from user_budgets where budget_id = ?"
-		m = "Budget successfully deleted."
-	} else if os.Args[1] == "delete" && os.Args[2] == "transaction" {
+	}
+	// delete a transaction
+	if newQuery.command == "delete" && newQuery.table == "transaction" {
 		q = "delete from transactions where transaction_id = ?"
-		m = "Transaction successfully deleted."
 	}
 
 	var (
@@ -65,17 +112,12 @@ func main() {
 	)
 
 	// Update existing budget/transaction
-	if len(os.Args) == 5 {
-		a, err := strconv.ParseFloat(os.Args[3], 64)
-		if err != nil {
-			fmt.Println("Error in allowance conversion to float:", err)
-		}
-		id, err := strconv.ParseInt(os.Args[4], 10, 64)
-		if err != nil {
-			fmt.Println("Error in id conversion to integer:", err)
-		}
-
-		rows, err := db.Query(q, a, id)
+	if newQuery.command == "update" {
+		rows, err := db.Query(
+			q,
+			newQuery.amount,
+			newQuery.id,
+		)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -91,17 +133,16 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(m)
+		fmt.Println(newQuery.table + " successfully updated!")
 	}
 
 	// Insert a new budget/transaction
-	if len(os.Args) == 4 && os.Args[1] != "delete" {
-		a, err := strconv.ParseFloat(os.Args[3], 64)
-		if err != nil {
-			fmt.Println("Error in string conversion to float:", err)
-		}
-		n := os.Args[2]
-		rows, err := db.Query(q, n, a)
+	if newQuery.command == "add" {
+		rows, err := db.Query(
+			q,
+			newQuery.name,
+			newQuery.amount,
+		)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -117,11 +158,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(m)
+		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
 	}
 
 	// Select * from
-	if len(os.Args) == 3 {
+	if newQuery.command == "get" {
 		rows, err := db.Query(q)
 		if err != nil {
 			log.Fatal(err)
@@ -142,13 +183,11 @@ func main() {
 	}
 
 	// Delete a budget/transaction
-	if len(os.Args) == 4 && os.Args[1] == "delete" {
-		id, err := strconv.ParseFloat(os.Args[3], 64)
-		if err != nil {
-			fmt.Println("Error in allowance conversion to float:", err)
-		}
-
-		rows, err := db.Query(q, id)
+	if newQuery.command == "delete" {
+		rows, err := db.Query(
+			q,
+			newQuery.id,
+		)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -164,6 +203,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(m)
+		fmt.Println(newQuery.table + " successfully deleted.")
 	}
 }
