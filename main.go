@@ -32,18 +32,19 @@ func main() {
 	}
 
 	var q string
+	var m string
 
 	if os.Args[1] == "budget" {
 		q = "insert into user_budgets (budget_name, allowance) VALUES (?, ?)"
+		m = "Budget for " + os.Args[2] + " successfully added!"
 	} else if os.Args[1] == "spent" {
 		q = "insert into transactions (transaction_desc, amount_spent) VALUES (?, ?)"
+		m = "Transaction for " + os.Args[2] + " successfully added!"
+	} else if os.Args[1] == "get" && os.Args[2] == "budgets" {
+		q = "select * from user_budgets"
+	} else if os.Args[1] == "get" && os.Args[2] == "transactions" {
+		q = "select * from transactions"
 	}
-
-	a, err := strconv.ParseFloat(os.Args[3], 64)
-	if err != nil {
-		fmt.Println("Error in string conversion to float:", err)
-	}
-	n := os.Args[2]
 
 	var (
 		id     int
@@ -51,20 +52,46 @@ func main() {
 		amount float64
 	)
 
-	rows, err := db.Query(q, n, a)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&id, &name, &amount)
+	if len(os.Args) == 4 {
+		a, err := strconv.ParseFloat(os.Args[3], 64)
+		if err != nil {
+			fmt.Println("Error in string conversion to float:", err)
+		}
+		n := os.Args[2]
+		rows, err := db.Query(q, n, a)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(id, name, amount)
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Fatal(err)
+		defer rows.Close()
+		for rows.Next() {
+			err := rows.Scan(&id, &name, &amount)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println(id, name, amount)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(m)
+	} else if len(os.Args) == 3 {
+		rows, err := db.Query(q)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err := rows.Scan(&id, &name, &amount)
+			if err != nil {
+
+				log.Fatal(err)
+			}
+			log.Println(id, name, amount)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
