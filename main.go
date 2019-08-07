@@ -21,6 +21,7 @@ type query struct {
 }
 
 func main() {
+	// loading .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading env file")
@@ -28,12 +29,13 @@ func main() {
 	pass := os.Getenv("DB_PASS")
 	dsn := "root:" + pass + "@tcp(127.0.0.1:3306)/budget"
 
+	// establishing reference to db
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		fmt.Println("Error in db registration:", err)
 		os.Exit(1)
 	}
-
+	// checking access to db
 	err = db.Ping()
 	if err != nil {
 		fmt.Println("Error in db ping:", err)
@@ -50,7 +52,7 @@ func main() {
 	if newQuery.command == "add" {
 		a, err := strconv.ParseFloat(os.Args[4], 64)
 		if err != nil {
-			fmt.Println("Error in string conversion to float:", err)
+			fmt.Println("Error in amount conversion to float:", err)
 		}
 		newQuery.name = os.Args[3]
 		newQuery.amount = a
@@ -67,10 +69,12 @@ func main() {
 	if len(os.Args) >= 5 {
 		a, err := strconv.ParseFloat(os.Args[4], 64)
 		if err != nil {
-			fmt.Println("Error in allowance conversion to float:", err)
+			fmt.Println("Error in amount conversion to float:", err)
 		}
 		newQuery.amount = a
 	}
+
+	// QUERIES
 
 	// add budget
 	if newQuery.command == "add" && newQuery.table == "budget" {
@@ -110,6 +114,8 @@ func main() {
 		name   string
 		amount float64
 	)
+
+	// CRUD actions
 
 	// Update existing budget/transaction
 	if newQuery.command == "update" {
@@ -161,7 +167,7 @@ func main() {
 		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
 	}
 
-	// Select * from
+	// Select all records from budgets/transactions
 	if newQuery.command == "get" {
 		rows, err := db.Query(q)
 		if err != nil {
@@ -171,7 +177,6 @@ func main() {
 		for rows.Next() {
 			err := rows.Scan(&id, &name, &amount)
 			if err != nil {
-
 				log.Fatal(err)
 			}
 			log.Println(id, name, amount)
