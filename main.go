@@ -52,7 +52,10 @@ func main() {
 
 	newQuery := query{
 		command: os.Args[1],
-		table:   os.Args[2],
+	}
+
+	if len(os.Args) > 2 {
+		newQuery.table = os.Args[2]
 	}
 
 	// setting name and amount for adding a budget/transaction
@@ -122,12 +125,20 @@ func main() {
 	if newQuery.command == "delete" && newQuery.table == "transaction" {
 		q = "delete from transactions where transaction_id = ?"
 	}
+	// inner join using budget_id
+	if newQuery.command == "join-on" {
+		q = "select * from transactions inner join user_budgets on transactions.budget_id=user_budgets.budget_id"
+	}
 
 	var (
-		id       int
-		name     string
-		amount   float64
-		budgetID int
+		id              int
+		name            string
+		amount          float64
+		budgetID        int
+		transactionID   int
+		budgetName      string
+		transactionName string
+		allowance       string
 	)
 
 	// CRUD actions
@@ -270,5 +281,41 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println(newQuery.table + " successfully deleted.")
+	}
+
+	// inner join transactions with budgets on budget_id
+	if newQuery.command == "join-on" {
+		rows, err := db.Query(q)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err := rows.Scan(
+				&transactionID,
+				&transactionName,
+				&amount,
+				&budgetID,
+				&budgetID,
+				&budgetName,
+				&allowance,
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println(
+				transactionID,
+				transactionName,
+				amount,
+				budgetID,
+				budgetID,
+				budgetName,
+				allowance,
+			)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

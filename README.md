@@ -39,6 +39,9 @@ DELETE <br>
 `delete budget <budget_id>` <br>
 `delete transaction <transaction_id>`
 
+INNER JOIN transactions with budgets on budget_id <br>
+`join-on`
+
 ## Demo
 
 ADD
