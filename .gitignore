@@ -13,3 +13,6 @@
 
 # environment vars
 .env
+
+.DS_Store
+/gifs/.DS_Store

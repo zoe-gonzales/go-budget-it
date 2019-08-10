@@ -38,3 +38,14 @@ UPDATE <br>
 DELETE <br>
 `delete budget <budget_id>` <br>
 `delete transaction <transaction_id>`
+
+## Demo
+
+ADD
+![adding budgets and transactions](./gifs/add.gif)
+
+UPDATE
+![updating budgets and transactions](./gifs/update.gif)
+
+DELETE
+![deleting budgets and transactions](./gifs/delete.gif)
