@@ -44,6 +44,12 @@ func main() {
 
 	var q string
 
+	if len(os.Args) == 1 {
+		fmt.Println("No commands entered.")
+		fmt.Println("See readme at https://github.com/zoe-gonzales/go-budget-it for all commands.")
+		os.Exit(1)
+	}
+
 	newQuery := query{
 		command: os.Args[1],
 		table:   os.Args[2],

@@ -5,21 +5,23 @@ This is a CLI app that enables users to add, view, update, and delete budgets an
 Go, SQL, MySQL
 
 ## Set up
-Requirements: MySQL, Go
+**Requirements:** MySQL, Go
 
 Clone this repo.
 
 To set up the database, enter the MySQL shell with `mysql -u username -p` and enter your password.
 
-Run the SQl file with `path/to/project/schemas.sql`
+Create database and tables: `source path/to/project/schemas.sql`
 
 **Note:** Above path can be obtained by running `pwd` in the directory in which the repo was cloned.
 
-If successful, your database will be set up and you can run the commands below.
+If successful, your database will be set up and no errors will print to the console when `go run main.go` is run.
+
+Now, run `go build main.go` and then any of the commands below.
 
 ## Commands
 
-All commands begin with `./main`
+**Important:** All commands begin with `./main`
 
 ADD
 `add budget <name> <allowance>`
