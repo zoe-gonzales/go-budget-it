@@ -23,18 +23,18 @@ Now, run `go build main.go` and then any of the commands below.
 
 **Important:** All commands begin with `./main`
 
-ADD
-`add budget <name> <allowance>`
+ADD <br>
+`add budget <name> <allowance>` <br>
 `add transaction <name/description> <amount> <budget_id>`
 
-VIEW
-`get budgets`
+VIEW <br>
+`get budgets` <br>
 `get transactions`
 
-UPDATE
-`update budget <id> <allowance>`
-`update transaction <id> <amount>`
+UPDATE <br>
+`update budget <budget_id> <new_allowance>` <br>
+`update transaction <transaction_id> <new_amount>`
 
-DELETE
-`delete budget <id>`
-`delete transaction <id>`
+DELETE <br>
+`delete budget <budget_id>` <br>
+`delete transaction <transaction_id>`
