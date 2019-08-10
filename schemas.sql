@@ -13,5 +13,6 @@ CREATE TABLE transactions (
     transaction_id INTEGER AUTO_INCREMENT NOT NULL,
     transaction_desc VARCHAR(100) NOT NULL,
     amount_spent DECIMAL(5,2) NOT NULL,
+    budget_id INTEGER,
     PRIMARY KEY (transaction_id)
 );

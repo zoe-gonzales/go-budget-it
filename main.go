@@ -13,11 +13,12 @@ import (
 )
 
 type query struct {
-	command string
-	table   string
-	name    string
-	amount  float64
-	id      int64
+	command  string
+	table    string
+	name     string
+	amount   float64
+	id       int64
+	budgetID int64
 }
 
 func main() {
@@ -54,11 +55,18 @@ func main() {
 		if err != nil {
 			fmt.Println("Error in amount conversion to float:", err)
 		}
+		if len(os.Args) > 5 {
+			budgetID, err := strconv.ParseInt(os.Args[5], 10, 64)
+			if err != nil {
+				fmt.Println("Error in id conversion to int:", err)
+			}
+			newQuery.budgetID = budgetID
+		}
 		newQuery.name = os.Args[3]
 		newQuery.amount = a
 	}
 	// setting id for delete and update actions
-	if len(os.Args) >= 4 {
+	if len(os.Args) >= 4 && newQuery.command != "add" {
 		id, err := strconv.ParseInt(os.Args[3], 10, 64)
 		if err != nil {
 			fmt.Println("Error in id conversion to integer:", err)
@@ -66,7 +74,7 @@ func main() {
 		newQuery.id = id
 	}
 	// setting amount for update action
-	if len(os.Args) >= 5 {
+	if len(os.Args) >= 5 && newQuery.command != "add" {
 		a, err := strconv.ParseFloat(os.Args[4], 64)
 		if err != nil {
 			fmt.Println("Error in amount conversion to float:", err)
@@ -82,7 +90,7 @@ func main() {
 	}
 	// add transaction
 	if newQuery.command == "add" && newQuery.table == "transaction" {
-		q = "insert into transactions (transaction_desc, amount_spent) VALUES (?, ?)"
+		q = "insert into transactions (transaction_desc, amount_spent, budget_id) VALUES (?, ?, ?)"
 	}
 	// get all budgets
 	if newQuery.command == "get" && newQuery.table == "budgets" {
@@ -110,9 +118,10 @@ func main() {
 	}
 
 	var (
-		id     int
-		name   string
-		amount float64
+		id       int
+		name     string
+		amount   float64
+		budgetID int
 	)
 
 	// CRUD actions
@@ -142,8 +151,8 @@ func main() {
 		fmt.Println(newQuery.table + " successfully updated!")
 	}
 
-	// Insert a new budget/transaction
-	if newQuery.command == "add" {
+	// Insert a new budget
+	if newQuery.command == "add" && newQuery.table == "budget" {
 		rows, err := db.Query(
 			q,
 			newQuery.name,
@@ -167,8 +176,34 @@ func main() {
 		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
 	}
 
-	// Select all records from budgets/transactions
-	if newQuery.command == "get" {
+	// Insert a new transaction
+	if newQuery.command == "add" && newQuery.table == "transaction" {
+		rows, err := db.Query(
+			q,
+			newQuery.name,
+			newQuery.amount,
+			newQuery.budgetID,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err := rows.Scan(&id, &name, &amount, &budgetID)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println(id, name, amount, budgetID)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
+	}
+
+	// Select all records from budgets
+	if newQuery.command == "get" && newQuery.table == "budgets" {
 		rows, err := db.Query(q)
 		if err != nil {
 			log.Fatal(err)
@@ -180,6 +215,26 @@ func main() {
 				log.Fatal(err)
 			}
 			log.Println(id, name, amount)
+		}
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// Select all records from transactions
+	if newQuery.command == "get" && newQuery.table == "transactions" {
+		rows, err := db.Query(q)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			err := rows.Scan(&id, &name, &amount, &budgetID)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println(id, name, amount, budgetID)
 		}
 		err = rows.Err()
 		if err != nil {
