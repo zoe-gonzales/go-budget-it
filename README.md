@@ -15,13 +15,13 @@ Create database and tables: `source path/to/project/schemas.sql`
 
 **Note:** Above path can be obtained by running `pwd` in the directory in which the repo was cloned.
 
-If successful, your database will be set up and no errors will print to the console when `go run main.go` is run.
+If successful, your database will be set up.
 
-Now, run `go build main.go` and then any of the commands below.
+Now, run `go build` and then any of the commands below.
 
 ## Commands
 
-**Important:** All commands begin with `./main`
+**Important:** All commands begin with `./go-budget-it`
 
 ADD <br>
 `add budget <name> <allowance>` <br>

@@ -42,8 +42,6 @@ func main() {
 		fmt.Println("Error in db ping:", err)
 	}
 
-	var q string
-
 	if len(os.Args) == 1 {
 		fmt.Println("No commands entered.")
 		fmt.Println("See readme at https://github.com/zoe-gonzales/go-budget-it for all commands.")
@@ -91,46 +89,8 @@ func main() {
 		newQuery.amount = a
 	}
 
-	// QUERIES
-
-	// add budget
-	if newQuery.command == "add" && newQuery.table == "budget" {
-		q = "insert into user_budgets (budget_name, allowance) VALUES (?, ?)"
-	}
-	// add transaction
-	if newQuery.command == "add" && newQuery.table == "transaction" {
-		q = "insert into transactions (transaction_desc, amount_spent, budget_id) VALUES (?, ?, ?)"
-	}
-	// get all budgets
-	if newQuery.command == "get" && newQuery.table == "budgets" {
-		q = "select * from user_budgets"
-	}
-	// get all transactions
-	if newQuery.command == "get" && newQuery.table == "transactions" {
-		q = "select * from transactions"
-	}
-	// update a budget
-	if newQuery.command == "update" && newQuery.table == "budget" {
-		q = "update user_budgets set allowance = ? where budget_id = ?"
-	}
-	// update a transaction
-	if newQuery.command == "update" && newQuery.table == "transaction" {
-		q = "update transactions set amount_spent = ? where transaction_id = ?"
-	}
-	// delete a budget
-	if newQuery.command == "delete" && newQuery.table == "budget" {
-		q = "delete from user_budgets where budget_id = ?"
-	}
-	// delete a transaction
-	if newQuery.command == "delete" && newQuery.table == "transaction" {
-		q = "delete from transactions where transaction_id = ?"
-	}
-	// inner join using budget_id
-	if newQuery.command == "join-on" {
-		q = "select * from transactions inner join user_budgets on transactions.budget_id=user_budgets.budget_id"
-	}
-
 	var (
+		q               string
 		id              int
 		name            string
 		amount          float64
@@ -138,184 +98,52 @@ func main() {
 		transactionID   int
 		budgetName      string
 		transactionName string
-		allowance       string
+		allowance       float64
 	)
-
-	// CRUD actions
-
-	// Update existing budget/transaction
-	if newQuery.command == "update" {
-		rows, err := db.Query(
-			q,
-			newQuery.amount,
-			newQuery.id,
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &amount)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, amount)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(newQuery.table + " successfully updated!")
-	}
 
 	// Insert a new budget
 	if newQuery.command == "add" && newQuery.table == "budget" {
-		rows, err := db.Query(
-			q,
-			newQuery.name,
-			newQuery.amount,
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &name, &amount)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, name, amount)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
+		q = "insert into user_budgets (budget_name, allowance) VALUES (?, ?)"
+		addBudget(db, q, newQuery.name, newQuery.amount, id, name, amount)
 	}
-
 	// Insert a new transaction
 	if newQuery.command == "add" && newQuery.table == "transaction" {
-		rows, err := db.Query(
-			q,
-			newQuery.name,
-			newQuery.amount,
-			newQuery.budgetID,
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &name, &amount, &budgetID)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, name, amount, budgetID)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(newQuery.name + " " + newQuery.table + " successfully added!")
+		q = "insert into transactions (transaction_desc, amount_spent, budget_id) VALUES (?, ?, ?)"
+		addTrans(db, q, newQuery.name, newQuery.amount, newQuery.budgetID, id, name, amount, budgetID)
 	}
-
 	// Select all records from budgets
 	if newQuery.command == "get" && newQuery.table == "budgets" {
-		rows, err := db.Query(q)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &name, &amount)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, name, amount)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
+		q = "select * from user_budgets"
+		getBudgets(db, q, id, name, amount)
 	}
-
 	// Select all records from transactions
 	if newQuery.command == "get" && newQuery.table == "transactions" {
-		rows, err := db.Query(q)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &name, &amount, &budgetID)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, name, amount, budgetID)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
+		q = "select * from transactions"
+		getTrans(db, q, id, name, amount, budgetID)
 	}
-
-	// Delete a budget/transaction
-	if newQuery.command == "delete" {
-		rows, err := db.Query(
-			q,
-			newQuery.id,
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(&id, &amount)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(id, amount)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(newQuery.table + " successfully deleted.")
+	// update a budget
+	if newQuery.command == "update" && newQuery.table == "budget" {
+		q = "update user_budgets set allowance = ? where budget_id = ?"
+		updateRecord(db, q, newQuery.amount, newQuery.id, id, amount)
 	}
-
+	// update a transaction
+	if newQuery.command == "update" && newQuery.table == "transaction" {
+		q = "update transactions set amount_spent = ? where transaction_id = ?"
+		updateRecord(db, q, newQuery.amount, newQuery.id, id, amount)
+	}
+	// delete a budget
+	if newQuery.command == "delete" && newQuery.table == "budget" {
+		q = "delete from user_budgets where budget_id = ?"
+		deleteRecord(db, q, newQuery.id, id, amount)
+	}
+	// delete a transaction
+	if newQuery.command == "delete" && newQuery.table == "transaction" {
+		q = "delete from transactions where transaction_id = ?"
+		deleteRecord(db, q, newQuery.id, id, amount)
+	}
 	// inner join transactions with budgets on budget_id
 	if newQuery.command == "join-on" {
-		rows, err := db.Query(q)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		for rows.Next() {
-			err := rows.Scan(
-				&transactionID,
-				&transactionName,
-				&amount,
-				&budgetID,
-				&budgetID,
-				&budgetName,
-				&allowance,
-			)
-			if err != nil {
-				log.Fatal(err)
-			}
-			log.Println(
-				transactionID,
-				transactionName,
-				amount,
-				budgetID,
-				budgetID,
-				budgetName,
-				allowance,
-			)
-		}
-		err = rows.Err()
-		if err != nil {
-			log.Fatal(err)
-		}
+		q = "select * from transactions inner join user_budgets on transactions.budget_id=user_budgets.budget_id"
+		innerJoin(db, q, transactionID, transactionName, amount, budgetID, budgetID, budgetName, allowance)
 	}
 }
