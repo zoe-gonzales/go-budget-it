@@ -16,7 +16,7 @@ func addTrans(
 	name string,
 	amount float64,
 	budgetID int,
-) {
+) (err error) {
 	rows, err := db.Query(q, n, a, bID)
 	if err != nil {
 		log.Fatal(err)
@@ -34,6 +34,7 @@ func addTrans(
 		log.Fatal(err)
 	}
 	fmt.Println(n + " transaction successfully added!")
+	return err
 }
 
 func getTrans(
@@ -43,7 +44,7 @@ func getTrans(
 	name string,
 	amount float64,
 	budgetID int,
-) {
+) (err error) {
 	rows, err := db.Query(q)
 	if err != nil {
 		log.Fatal(err)
@@ -60,4 +61,5 @@ func getTrans(
 	if err != nil {
 		log.Fatal(err)
 	}
+	return err
 }

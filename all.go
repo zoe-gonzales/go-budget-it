@@ -13,7 +13,7 @@ func updateRecord(
 	i int64,
 	id int,
 	amount float64,
-) {
+) (err error) {
 	rows, err := db.Query(q, a, i)
 	if err != nil {
 		log.Fatal(err)
@@ -31,6 +31,7 @@ func updateRecord(
 		log.Fatal(err)
 	}
 	fmt.Println("Record successfully updated!")
+	return err
 }
 
 func deleteRecord(
@@ -39,7 +40,7 @@ func deleteRecord(
 	i int64,
 	id int,
 	amount float64,
-) {
+) (err error) {
 	rows, err := db.Query(q, i)
 	if err != nil {
 		log.Fatal(err)
@@ -57,6 +58,7 @@ func deleteRecord(
 		log.Fatal(err)
 	}
 	fmt.Println("Record successfully deleted.")
+	return err
 }
 
 func innerJoin(
@@ -69,7 +71,7 @@ func innerJoin(
 	bID int,
 	budgetName string,
 	allowance float64,
-) {
+) (err error) {
 	rows, err := db.Query(q)
 	if err != nil {
 		log.Fatal(err)
@@ -102,4 +104,5 @@ func innerJoin(
 	if err != nil {
 		log.Fatal(err)
 	}
+	return err
 }
