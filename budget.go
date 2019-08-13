@@ -41,7 +41,7 @@ func getBudgets(
 	id int,
 	name string,
 	amount float64,
-) {
+) (err error) {
 	rows, err := db.Query(q)
 	if err != nil {
 		log.Fatal(err)
@@ -58,4 +58,5 @@ func getBudgets(
 	if err != nil {
 		log.Fatal(err)
 	}
+	return err
 }
